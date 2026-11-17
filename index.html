@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tra cứu kiểm tra, giám sát, kỷ luật Đảng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+/* Bố cục: tiêu đề + thông báo thay đổi văn bản + 5 tab tra cứu. Đỏ cờ chỉ dùng cho điểm nhấn chính. */
+:root {
+  --ink: #1b2330;
+  --muted: #586174;
+  --line: #d9dde5;
+  --bg: #f3f5f8;
+  --card: #ffffff;
+  --accent: #a31621;
+  --accent-ink: #ffffff;
+  --accent-soft: #fbe9eb;
+  --ok: #1d7a4a; --ok-soft: #e4f4ea;
+  --warn: #8f5e00; --warn-soft: #fdf1d6;
+  --bad: #b3261e; --bad-soft: #fde8e6;
+  --info: #1b5ea8; --info-soft: #e5eefa;
+  --display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #e8ebf1; --muted: #9aa3b5; --line: #2f3646; --bg: #12151c; --card: #1a1e28;
+    --accent: #e0525e; --accent-ink: #1a1013; --accent-soft: #3a1c21;
+    --ok: #5fcf93; --ok-soft: #163425; --warn: #e8b84f; --warn-soft: #3a2d10;
+    --bad: #ff8a80; --bad-soft: #3d1b19; --info: #7db4f0; --info-soft: #16283f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #e8ebf1; --muted: #9aa3b5; --line: #2f3646; --bg: #12151c; --card: #1a1e28;
+  --accent: #e0525e; --accent-ink: #1a1013; --accent-soft: #3a1c21;
+  --ok: #5fcf93; --ok-soft: #163425; --warn: #e8b84f; --warn-soft: #3a2d10;
+  --bad: #ff8a80; --bad-soft: #3d1b19; --info: #7db4f0; --info-soft: #16283f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.app { max-width: 980px; margin: 0 auto; padding: 20px 16px 56px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--info); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.org { margin: 0 0 2px; font-size: 13px; color: var(--muted); letter-spacing: .02em; }
+h1 { font-family: var(--display); font-size: 29px; font-weight: 600; line-height: 1.18; }
+.asof { margin: 6px 0 16px; font-size: 13.5px; color: var(--muted); }
+
+.notice { border: 1px solid var(--warn); background: var(--warn-soft); color: var(--ink); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+.notice strong { color: var(--warn); }
+.notice p { margin: 0 0 8px; }
+.notice ul { margin: 0; padding-left: 20px; }
+.notice li { margin: 2px 0; }
+
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 16px; overflow-x: auto; }
+.tab { appearance: none; background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 12px; cursor: pointer; font-weight: 500; color: var(--muted); white-space: nowrap; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+.tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+.tools input[type="search"] { flex: 1 1 240px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chip { appearance: none; cursor: pointer; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 5px 12px; font-size: 13.5px; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.count { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+
+.list { display: grid; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--ok); border-radius: 10px; padding: 14px 16px; }
+.card.tk { border-left-color: var(--info); }
+.card.old { border-left-color: var(--bad); }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12.5px; color: var(--muted); }
+.pill { font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px; background: var(--line); color: var(--ink); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.info { background: var(--info-soft); color: var(--info); }
+.card h3 { font-family: var(--display); font-size: 18px; line-height: 1.3; }
+.card h3 .no { display: inline-block; margin-right: 6px; padding: 0 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); font-family: var(--body); font-size: 14px; font-weight: 600; white-space: nowrap; }
+.issuer { margin: 4px 0 8px; font-size: 13.5px; color: var(--muted); }
+.card ul { margin: 6px 0; padding-left: 20px; }
+.card li { margin: 3px 0; }
+.use { margin: 8px 0 4px; font-size: 14px; }
+.src { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.src a { overflow-wrap: anywhere; }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.old { color: var(--muted); }
+td.new { font-weight: 500; }
+.note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+
+details.faq { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; }
+details.faq + details.faq { margin-top: 8px; }
+details.faq summary { cursor: pointer; padding: 12px 0; font-weight: 500; list-style-position: outside; }
+details.faq[open] summary { color: var(--accent); }
+details.faq .body { padding: 0 0 12px; }
+details.faq .body p { margin: 0 0 8px; }
+details.faq .body ul { margin: 4px 0 8px; padding-left: 20px; }
+.basis { font-size: 12.5px; color: var(--muted); }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0 0 16px; padding: 0; list-style: none; }
+.steps li { background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--accent); border-radius: 10px; padding: 12px 14px; }
+.steps b { display: block; font-family: var(--display); font-size: 17px; margin-bottom: 4px; }
+.sect { font-family: var(--display); font-size: 19px; margin: 22px 0 8px; }
+.todo { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.todo li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.todo li strong { display: block; }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+@media (max-width: 520px) { h1 { font-size: 24px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <p class="org">Cơ quan UBKT Đảng ủy xã Thạnh Quới</p>
+    <h1>Tra cứu kiểm tra, giám sát, kỷ luật Đảng</h1>
+    <p class="asof">Đối chiếu văn bản đến ngày 17/11/2026. Viết cho người mới vào ngành, có nguồn dẫn ở từng mục.</p>
+  </header>
+
+  <section class="notice" aria-label="Thông báo quan trọng">
+    <p><strong>Khung văn bản đã đổi hẳn trong năm 2026.</strong> Các văn bản quen thuộc như Quy định 22, 296, 21 (kiểm tra, giám sát, kỷ luật) và Quy định 69, 264 (kỷ luật) đều đã bị thay thế. Hiện hành:</p>
+    <ul>
+      <li><b>Quy định 225-QĐ/TW</b> (14/10/2026): công tác kiểm tra, giám sát và kỷ luật của Đảng.</li>
+      <li><b>Quy định 212-QĐ/TW</b> (17/8/2026): kỷ luật tổ chức đảng, đảng viên vi phạm.</li>
+      <li><b>Quy định 207-QĐ/TW</b> (26/7/2026): 19 điều đảng viên không được làm.</li>
+      <li><b>Quy định 208-QĐ/TW</b> (26/7/2026): thi hành Điều lệ Đảng.</li>
+    </ul>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Nội dung">
+    <button class="tab" role="tab" id="tab-van-ban" aria-selected="true" aria-controls="panel-van-ban">Văn bản</button>
+    <button class="tab" role="tab" id="tab-cu-moi" aria-selected="false" aria-controls="panel-cu-moi">Cũ và mới</button>
+    <button class="tab" role="tab" id="tab-hoi-nhanh" aria-selected="false" aria-controls="panel-hoi-nhanh">Hỏi nhanh</button>
+    <button class="tab" role="tab" id="tab-quy-trinh" aria-selected="false" aria-controls="panel-quy-trinh">Quy trình</button>
+    <button class="tab" role="tab" id="tab-doi-chieu" aria-selected="false" aria-controls="panel-doi-chieu">Cần đối chiếu</button>
+  </div>
+
+  <section id="panel-van-ban" role="tabpanel" aria-labelledby="tab-van-ban">
+    <div class="tools"><input type="search" id="qDoc" placeholder="Tìm theo số hiệu, tên hoặc nội dung (ví dụ: thời hiệu, 225, đình chỉ)" aria-label="Tìm văn bản"></div>
+    <div class="chips" id="docChips" role="group" aria-label="Lọc văn bản"></div>
+    <p class="count" id="docCount"></p>
+    <div class="list" id="docList"></div>
+  </section>
+
+  <section id="panel-cu-moi" role="tabpanel" aria-labelledby="tab-cu-moi" hidden>
+    <p class="note" style="margin:0 0 10px">Nếu văn bản của đơn vị còn ghi căn cứ ở cột trái, hãy đổi sang cột phải khi soạn mới. Văn bản đã ban hành trước ngày hiệu lực vẫn giữ căn cứ của thời điểm đó.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Lĩnh vực</th><th>Đã bị thay thế</th><th>Hiện hành</th></tr></thead>
+      <tbody id="oldNew"></tbody>
+    </table></div>
+    <p class="note">Cột trái liệt kê theo thứ tự thời gian, văn bản mới nhất ở cuối.</p>
+  </section>
+
+  <section id="panel-hoi-nhanh" role="tabpanel" aria-labelledby="tab-hoi-nhanh" hidden>
+    <div class="tools"><input type="search" id="qFaq" placeholder="Tìm câu hỏi (ví dụ: thời hiệu, khai trừ, khiếu nại)" aria-label="Tìm câu hỏi"></div>
+    <p class="count" id="faqCount"></p>
+    <div id="faqList"></div>
+  </section>
+
+  <section id="panel-quy-trinh" role="tabpanel" aria-labelledby="tab-quy-trinh" hidden>
+    <p class="note" style="margin:0 0 10px">Các quy trình của Ủy ban Kiểm tra đều chia ba bước. Phần chi tiết từng bước nằm trong văn bản quy trình, mục này chỉ chỉ đường tới đúng văn bản.</p>
+    <ol class="steps">
+      <li><b>1. Chuẩn bị</b>Nắm tình hình, thành lập đoàn hoặc tổ, xây dựng kế hoạch (ví dụ quy trình kiểm tra chấp hành bắt đầu bằng việc thành lập đoàn kiểm tra và xây dựng kế hoạch kiểm tra).</li>
+      <li><b>2. Tiến hành</b>Thực hiện theo kế hoạch: làm việc với đối tượng, thẩm tra, xác minh, họp và kết luận theo thẩm quyền.</li>
+      <li><b>3. Kết thúc</b>Hoàn thiện báo cáo, thông báo kết luận, theo dõi đối tượng thực hiện kết luận, lưu hồ sơ.</li>
+    </ol>
+    <h2 class="sect">Văn bản quy trình để mở khi làm việc</h2>
+    <div class="list" id="procList"></div>
+  </section>
+
+  <section id="panel-doi-chieu" role="tabpanel" aria-labelledby="tab-doi-chieu" hidden>
+    <h2 class="sect" style="margin-top:0">Việc nên làm trước</h2>
+    <ol class="todo" id="actions"></ol>
+    <h2 class="sect">Điểm chưa xác minh được</h2>
+    <p class="note" style="margin:0 0 8px">Mục này nêu những chỗ mới đọc bản tóm tắt báo chí hoặc các nguồn nêu không thống nhất. Đối chiếu toàn văn trước khi trích dẫn số điều trong văn bản của đơn vị.</p>
+    <ol class="todo" id="openItems"></ol>
+  </section>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------- Dữ liệu ---------- */
+var VER = {
+  ok:   ['Đã đối chiếu nhiều nguồn', 'ok'],
+  sum:  ['Từ bản tóm tắt, cần đối chiếu số điều', 'warn'],
+  open: ['Chưa xác minh còn hiệu lực', 'bad']
+};
+var STATUS = {
+  hh:  ['Hiện hành', 'ok'],
+  tk:  ['Tham khảo', 'info'],
+  old: ['Đã bị thay thế', 'bad']
+};
+
+var S = {
+  t225:  ['Toàn văn trên Chinhphu.vn', 'https://xaydungchinhsach.chinhphu.vn/toan-van-quy-dinh-so-225-qd-tw-ve-cong-tac-kiem-tra-giam-sat-va-ky-luat-cua-dang-119261015230740566.htm'],
+  tl225: ['Tư liệu văn kiện Đảng', 'https://tulieuvankien.dangcongsan.vn/chu-chuong-chinh-sach-moi/quy-dinh-ve-cong-tac-kiem-tra-giam-sat-va-ky-luat-cua-dang.html'],
+  cl225: ['Điểm mới (Công lý)', 'https://congly.vn/quy-dinh-225-qd-tw-nhung-diem-moi-ve-kiem-tra-giam-sat-va-ky-luat-cua-dang-543563.html'],
+  qln225:['Điểm mới (Quản lý nhà nước)', 'https://www.quanlynhanuoc.vn/?p=70460'],
+  lv225: ['Tóm tắt (Luật Việt Nam)', 'https://luatvietnam.vn/hanh-chinh/quy-dinh-225-qd-tw-2026-ve-cong-tac-kiem-tra-giam-sat-va-ky-luat-cua-dang-451196-d11.html'],
+  tvpl225:['Hình thức kỷ luật (Thư viện Pháp luật)', 'https://thuvienphapluat.vn/chinh-sach-phap-luat-moi/vn/ho-tro-phap-luat/chinh-sach-moi/122782/cac-hinh-thuc-ky-luat-dang-theo-quy-dinh-225-qd-tw-ra-sao'],
+  t212:  ['Toàn văn trên Chinhphu.vn', 'https://xaydungchinhsach.chinhphu.vn/toan-van-quy-dinh-so-212-qd-tw-cua-bo-chinh-tri-quy-dinh-ve-ky-luat-to-chuc-dang-dang-vien-vi-pham-119260905175836836.htm'],
+  nd212: ['Điểm mới (Nhân Dân)', 'https://nhandan.vn/nhung-diem-moi-trong-quy-dinh-so-212-qdtw-ve-ky-luat-to-chuc-dang-dang-vien-vi-pham-post992922.html'],
+  tc212: ['Điểm mới (Tạp chí Nội vụ)', 'https://tcnnld.vn/news/detail/73824/Tim-hieu-nhung-diem-moi-cua-quy-dinh-212-QDTW-ve-ky-luat-to-chuc-dang-dang-vien-vi-pham.html'],
+  ls212: ['Thời hiệu kỷ luật (LSVN)', 'https://lsvn.vn/bo-chinh-tri-ban-hanh-quy-dinh-moi-ve-ky-luat-to-chuc-dang-dang-vien-vi-pham-a178792.html'],
+  lv212: ['Tin liên quan 212 (Luật Việt Nam)', 'https://luatvietnam.vn/bai-viet-lien-quan/quy-dinh-212-qd-tw-446604.html'],
+  hd03:  ['Hướng dẫn 03 về loại trừ trách nhiệm (LSVN)', 'https://lsvn.vn/can-bo-dang-vien-duoc-loai-tru-trach-nhiem-khi-thiet-hai-do-nguyen-nhan-khach-quan-a179850.html'],
+  q207:  ['Điểm mới Quy định 207 (Đại biểu Nhân dân)', 'https://daibieunhandan.vn/print/10425288.html'],
+  hd02u: ['Hướng dẫn 02-HD/UBKTTW (Báo Quốc tế)', 'https://baoquocte.vn/huong-dan-thuc-hien-quy-dinh-ve-nhung-dieu-dang-vien-khong-duoc-lam-425553.html'],
+  q208:  ['Quy định 208 và Hướng dẫn 02-HD/TW (bản phổ biến)', 'https://cdnportal.vnu.edu.vn/data/0/documents/2026/08/25/upload_6/signed-945-signed-1-pho-bien-qd-208-va-hd-02-thi-hanh-dieu-le-dang-20-8-26-final.pdf'],
+  vov208:['Phân quyền cho cơ sở (VOV)', 'https://vov.vn/chinh-tri/phan-quyen-manh-cho-co-so-thuc-day-chuyen-doi-so-trong-cong-tac-dang-post1341574.vov'],
+  nq05:  ['Nghị quyết 05-NQ/TW (Đại biểu Nhân dân)', 'https://daibieunhandan.vn/hoi-nghi-toan-quoc-quan-triet-nghi-quyet-hoi-nghi-trung-uong-2-khoa-xiv-cong-cu-sac-ben-giu-vung-ky-luat-ky-cuong-cung-co-niem-tin-cua-nhan-dan-10413381.html'],
+  q354:  ['Quyết định 354-QĐ/UBKTTW', 'https://thuvienphapluat.vn/documents/law.aspx?id=E%3DRBeE1EVTTl'],
+  q89:   ['Quyết định 89-QĐ/TW (PDF)', 'https://moj.gov.vn/ddt/tintuc/Lists/VanBanTaiLieuCapTren/Attachments/242/89.QD.TW.pdf'],
+  qtmau: ['Quy trình mẫu của UBKT Đảng ủy phường (2026)', 'https://cdn.haiphong.gov.vn/gov-hpg/6807/tintuc/2026/4/6.-qt05-gq-tocao639125354087850172.pdf'],
+  q11:   ['Quy định 11-QĐ/UBKTTW', 'https://luatvietnam.vn/hanh-chinh/quy-dinh-11-qd-ubkttw-2025-quan-ly-su-dung-phan-mem-co-so-du-lieu-thong-ke-nganh-kiem-tra-dang-418693-d6.html'],
+  q296:  ['Quy định 296 (Tư liệu văn kiện Đảng)', 'https://tulieuvankien.dangcongsan.vn/home/chu-truong-chinh-sach-moi/quy-dinh-moi-ve-cong-tac-kiem-tra-giam-sat-va-ky-luat-cua-dang-4292'],
+  q22:   ['Quy định 22 (Luật Việt Nam)', 'https://luatvietnam.vn/hanh-chinh/quy-dinh-22-qd-tw-207540-d6.html'],
+  q69:   ['Quy định 69 (Thư viện Pháp luật)', 'https://thuvienphapluat.vn/documents/law.aspx?id=A%3DRJeE1UYzTl'],
+  q37:   ['Quy định 207 thay Quy định 37 (Báo Mới)', 'https://baomoi.com/tran-sy-thanh-t48725813.epi']
+};
+
+/* g: kg = kiểm tra, giám sát; kl = kỷ luật; dv = đảng viên và Điều lệ; qt = quy trình và nội bộ ngành */
+var DOCS = [
+  { g: 'kg', st: 'hh', ver: 'ok', no: '225-QĐ/TW', date: '14/10/2026',
+    title: 'Quy định về công tác kiểm tra, giám sát và kỷ luật của Đảng',
+    issuer: 'Ban Chấp hành Trung ương · có hiệu lực từ ngày ký · thay Quy định 21-QĐ/TW (11/4/2026)',
+    pts: [
+      '7 chương, 35 điều: kiểm tra, giám sát; thi hành kỷ luật; giải quyết tố cáo; giải quyết khiếu nại kỷ luật; đình chỉ hoạt động của tổ chức đảng, đình chỉ sinh hoạt của đảng viên và cấp ủy viên.',
+      'Chuyển tiếp: cuộc kiểm tra, giám sát đã thông qua dự thảo báo cáo thẩm tra, xác minh trước 14/10/2026 thì tiếp tục làm theo Quy định 21.',
+      'Điều 9 là hình thức kỷ luật; Điều 10 là thẩm quyền kỷ luật đảng viên; Điều 11 là thẩm quyền kỷ luật tổ chức đảng (số điều theo bản tóm tắt).',
+      'Điều 3 viết ủy ban kiểm tra được lập từ “đảng ủy trực thuộc cơ sở trở lên” (Quy định 21 viết “đảng ủy cơ sở trở lên”).',
+      'Ủy ban kiểm tra được kết nối cơ sở dữ liệu nhà nước (ngân hàng, chứng khoán, đăng ký tài sản, đất đai, thuế, thanh tra, kiểm toán, thi hành án).',
+      'Thêm nội dung kiểm tra việc phát huy vai trò Mặt trận Tổ quốc, đoàn thể và Nhân dân trong xây dựng Đảng, chính quyền.',
+      'Giao Ban Bí thư ban hành hướng dẫn chi tiết. Đến 17/11/2026 mình chưa tìm thấy hướng dẫn riêng.'
+    ],
+    use: 'Căn cứ chính cho mọi việc kiểm tra, giám sát, kỷ luật, tố cáo, khiếu nại kỷ luật và đình chỉ.',
+    src: [S.t225, S.tl225, S.cl225, S.qln225, S.lv225] },
+
+  { g: 'kl', st: 'hh', ver: 'ok', no: '212-QĐ/TW', date: '17/8/2026',
+    title: 'Quy định về kỷ luật tổ chức đảng, đảng viên vi phạm',
+    issuer: 'Bộ Chính trị · có hiệu lực từ ngày ký · thay Quy định 69-QĐ/TW và 264-QĐ/TW',
+    pts: [
+      '4 chương, 60 điều. Nêu nội dung vi phạm và hình thức kỷ luật theo từng lĩnh vực.',
+      'Tổ chức đảng: khiển trách, cảnh cáo, giải tán. Đảng viên chính thức: khiển trách, cảnh cáo, cách chức (nếu có chức vụ), khai trừ. Đảng viên dự bị: khiển trách, cảnh cáo.',
+      'Thời hiệu: tổ chức đảng 5 năm (khiển trách), 10 năm (cảnh cáo); đảng viên 5 năm (khiển trách), 10 năm (cảnh cáo, cách chức). Chi tiết ở mục Hỏi nhanh.',
+      'Mới: bổ sung hành vi trong khoa học công nghệ, dữ liệu, trí tuệ nhân tạo; điều riêng về lĩnh vực giáo dục; tài sản mã hóa, tài sản số.',
+      'Mới: tổ chức có trách nhiệm xin lỗi và phục hồi quyền lợi cho tổ chức đảng, đảng viên bị kỷ luật oan, sai.',
+      'Vẫn có cơ chế xem xét miễn kỷ luật với đề xuất đổi mới, sáng tạo đáp ứng điều kiện (điểm e khoản 14 Điều 2).'
+    ],
+    use: 'Xác định hành vi có phải vi phạm, mức kỷ luật, thời hiệu, tình tiết tăng nặng, giảm nhẹ.',
+    src: [S.t212, S.nd212, S.tc212, S.ls212, S.lv212] },
+
+  { g: 'kl', st: 'hh', ver: 'sum', no: '03-HD/UBKTTW', date: '23/9/2026',
+    title: 'Hướng dẫn thực hiện một số điều trong Quy định 212-QĐ/TW',
+    issuer: 'Ủy ban Kiểm tra Trung ương',
+    pts: [
+      'Nguyên tắc loại trừ trách nhiệm khi thiệt hại xảy ra hoàn toàn do nguyên nhân khách quan.',
+      'Xem xét miễn hoặc giảm trách nhiệm với sai sót khi thực hiện nhiệm vụ nếu đủ điều kiện.',
+      'Bổ sung hướng dẫn xử lý đảng viên vi phạm chính sách an sinh xã hội (bảo hiểm xã hội, bảo hiểm thất nghiệp, bảo hiểm y tế).'
+    ],
+    use: 'Đọc cùng Quy định 212 khi cần cách hiểu và áp dụng cụ thể từng điều.',
+    src: [S.hd03, S.lv212] },
+
+  { g: 'dv', st: 'hh', ver: 'ok', no: '207-QĐ/TW', date: '26/7/2026',
+    title: 'Quy định về những điều đảng viên không được làm',
+    issuer: 'Ban Chấp hành Trung ương · thay Quy định 37-QĐ/TW (25/10/2021)',
+    pts: [
+      '19 điều, giữ nguyên số điều như Quy định 37 nhưng bổ sung nhiều hành vi mới.',
+      'Mới: né tránh, đùn đẩy, sợ trách nhiệm, làm việc cầm chừng, nhũng nhiễu trong giải quyết thủ tục hành chính, biết mà không báo cáo hoặc không xử lý tham nhũng, lãng phí, tiêu cực.',
+      'Nêu rõ quy định này không hạn chế tinh thần đổi mới sáng tạo, dám nghĩ dám làm vì lợi ích chung.'
+    ],
+    use: 'Kiểm điểm đảng viên, sinh hoạt chi bộ, đối chiếu khi có dấu hiệu vi phạm.',
+    src: [S.q207, S.q37] },
+
+  { g: 'dv', st: 'hh', ver: 'sum', no: '02-HD/UBKTTW', date: '28/7/2026',
+    title: 'Hướng dẫn thực hiện Quy định về những điều đảng viên không được làm',
+    issuer: 'Ủy ban Kiểm tra Trung ương · thay Hướng dẫn 02-HD/UBKTTW (29/11/2021)',
+    pts: ['Giải thích từ ngữ và hướng dẫn chi tiết nội dung từng điều trong 19 điều của Quy định 207.'],
+    use: 'Tra khi cần hiểu một điều trong Quy định 207 cụ thể là hành vi nào.',
+    src: [S.hd02u] },
+
+  { g: 'dv', st: 'hh', ver: 'sum', no: '208-QĐ/TW', date: '26/7/2026',
+    title: 'Quy định về thi hành Điều lệ Đảng',
+    issuer: 'Ban Chấp hành Trung ương · thay Quy định 20-QĐ/TW (8/4/2026)',
+    pts: [
+      'Hệ thống tổ chức của Đảng theo đơn vị hành chính cấp xã (xã, phường, đặc khu), cấp tỉnh, thành phố và cấp Trung ương.',
+      'Trao thêm quyền cho cơ sở: đảng ủy trực thuộc cơ sở có quyền khai trừ đảng viên không còn đủ tiêu chuẩn.',
+      'Bao gồm nội dung về kiểm tra, giám sát, khen thưởng, kỷ luật.'
+    ],
+    use: 'Khung chung của Điều lệ. Cần đọc toàn văn để biết đảng ủy xã được trao quyền ở mức nào.',
+    src: [S.q208, S.vov208] },
+
+  { g: 'dv', st: 'hh', ver: 'sum', no: '02-HD/TW', date: '7/8/2026',
+    title: 'Hướng dẫn một số vấn đề cụ thể thi hành Điều lệ Đảng',
+    issuer: 'Ban Bí thư · thay Hướng dẫn 01-HD/TW (19/5/2026)',
+    pts: ['Đi kèm Quy định 208-QĐ/TW; hướng dẫn các vấn đề cụ thể khi áp dụng Điều lệ.'],
+    use: 'Tra khi áp dụng Quy định 208 vào tình huống cụ thể.',
+    src: [S.q208] },
+
+  { g: 'kg', st: 'hh', ver: 'sum', no: '05-NQ/TW', date: '7/4/2026',
+    title: 'Nghị quyết về đổi mới, nâng cao hiệu lực công tác kiểm tra, giám sát và kỷ luật đảng',
+    issuer: 'Ban Chấp hành Trung ương khóa XIV · thay Nghị quyết Trung ương 5 khóa X',
+    pts: ['Định hướng của nhiệm kỳ. Nhiều tỉnh đã ban hành chương trình hành động thực hiện Nghị quyết này.'],
+    use: 'Căn cứ chủ trương khi soạn kế hoạch, chương trình, báo cáo của Ủy ban Kiểm tra.',
+    src: [S.nq05] },
+
+  { g: 'qt', st: 'tk', ver: 'open', no: '354-QĐ/UBKTTW', date: '22/12/2021',
+    title: 'Quyết định ban hành các quy trình kiểm tra, giám sát, thi hành kỷ luật đảng',
+    issuer: 'Ủy ban Kiểm tra Trung ương · thay các quyết định quy trình 150, 684, 1195',
+    pts: [
+      'Mỗi quy trình chia ba bước: chuẩn bị, tiến hành, kết thúc. Gồm quy trình kiểm tra khi có dấu hiệu vi phạm và các quy trình giám sát, thi hành kỷ luật.',
+      'Một số trang pháp luật vẫn dẫn quyết định này làm quy trình hiện dùng, nhưng mình chưa xác minh được có bản thay thế sau khi Quy định 225 ra đời hay chưa.'
+    ],
+    use: 'Dùng làm khung tham khảo. Hỏi Ủy ban Kiểm tra Tỉnh ủy xem quy trình nào đang áp dụng.',
+    src: [S.q354] },
+
+  { g: 'qt', st: 'tk', ver: 'open', no: '89-QĐ/TW', date: '1/12/2022',
+    title: 'Quyết định ban hành quy trình kiểm tra, giám sát, thi hành kỷ luật, giải quyết tố cáo, khiếu nại kỷ luật của cấp ủy tỉnh',
+    issuer: 'Ban Bí thư',
+    pts: ['Quy trình dành cho cấp ủy tỉnh, có kiểm tra chấp hành, giám sát chuyên đề. Dùng để tham khảo cách chia bước.'],
+    use: 'Tham khảo cấu trúc, không dùng nguyên văn cho cấp xã.',
+    src: [S.q89] },
+
+  { g: 'qt', st: 'tk', ver: 'open', no: '11-QĐ/UBKTTW', date: '11/11/2025',
+    title: 'Quy định quản lý, sử dụng phần mềm cơ sở dữ liệu thống kê ngành Kiểm tra Đảng',
+    issuer: 'Ủy ban Kiểm tra Trung ương',
+    pts: ['Quy định cách quản lý và dùng phần mềm thống kê của ngành. Mình chưa thấy văn bản thay thế.'],
+    use: 'Khi nhập số liệu thống kê, báo cáo trên phần mềm của ngành.',
+    src: [S.q11] }
+];
+
+var OLD = [
+  { no: '22-QĐ/TW', date: '28/7/2021', title: 'Công tác kiểm tra, giám sát và kỷ luật của Đảng', by: 'Quy định 296-QĐ/TW (30/5/2025), sau đó 21-QĐ/TW rồi 225-QĐ/TW', src: [S.q22, S.q296] },
+  { no: '296-QĐ/TW', date: '30/5/2025', title: 'Công tác kiểm tra, giám sát và kỷ luật của Đảng', by: 'Quy định 21-QĐ/TW (11/4/2026), sau đó 225-QĐ/TW', src: [S.q296] },
+  { no: '21-QĐ/TW', date: '11/4/2026', title: 'Công tác kiểm tra, giám sát và kỷ luật của Đảng', by: 'Quy định 225-QĐ/TW (14/10/2026)', src: [S.tl225] },
+  { no: '69-QĐ/TW', date: '6/7/2022', title: 'Kỷ luật tổ chức đảng, đảng viên vi phạm', by: 'Quy định 212-QĐ/TW (17/8/2026)', src: [S.q69, S.t212] },
+  { no: '264-QĐ/TW', date: '14/2/2025', title: 'Sửa đổi, bổ sung một số điều của Quy định 69', by: 'Quy định 212-QĐ/TW (17/8/2026)', src: [S.t212] },
+  { no: '37-QĐ/TW', date: '25/10/2021', title: 'Những điều đảng viên không được làm', by: 'Quy định 207-QĐ/TW (26/7/2026)', src: [S.q37] },
+  { no: '20-QĐ/TW', date: '8/4/2026', title: 'Thi hành Điều lệ Đảng', by: 'Quy định 208-QĐ/TW (26/7/2026)', src: [S.q208] }
+];
+
+var OLDNEW = [
+  ['Kiểm tra, giám sát, kỷ luật của Đảng', '30-QĐ/TW (2016), 22-QĐ/TW (28/7/2021), 262-QĐ/TW (3/2/2025), 296-QĐ/TW (30/5/2025), 21-QĐ/TW (11/4/2026)', '225-QĐ/TW (14/10/2026)'],
+  ['Kỷ luật tổ chức đảng, đảng viên vi phạm', '69-QĐ/TW (6/7/2022), 264-QĐ/TW (14/2/2025)', '212-QĐ/TW (17/8/2026)'],
+  ['Hướng dẫn thực hiện quy định kỷ luật', '05-HD/UBKTTW (22/11/2022) (chưa xác minh đã hết hiệu lực)', '03-HD/UBKTTW (23/9/2026)'],
+  ['Những điều đảng viên không được làm', '37-QĐ/TW (25/10/2021)', '207-QĐ/TW (26/7/2026)'],
+  ['Hướng dẫn về điều đảng viên không được làm', '02-HD/UBKTTW (29/11/2021)', '02-HD/UBKTTW (28/7/2026)'],
+  ['Thi hành Điều lệ Đảng', '294-QĐ/TW (26/5/2025), 20-QĐ/TW (8/4/2026)', '208-QĐ/TW (26/7/2026)'],
+  ['Hướng dẫn thi hành Điều lệ Đảng', '01-HD/TW (19/5/2026)', '02-HD/TW (7/8/2026)'],
+  ['Nghị quyết về kiểm tra, giám sát, kỷ luật đảng', 'Nghị quyết Trung ương 5 khóa X', '05-NQ/TW (7/4/2026)']
+];
+
+/* b = căn cứ; v = mức xác minh */
+var FAQ = [
+  { q: 'Bây giờ viện dẫn văn bản nào làm căn cứ?', v: 'ok',
+    a: '<p>Lấy bốn văn bản làm trục: <b>225-QĐ/TW</b> (kiểm tra, giám sát, kỷ luật), <b>212-QĐ/TW</b> (kỷ luật), <b>207-QĐ/TW</b> (điều đảng viên không được làm), <b>208-QĐ/TW</b> (thi hành Điều lệ).</p><p>Không còn dùng Quy định 22, 296, 21, 69, 264, 37 làm căn cứ cho văn bản soạn mới.</p>',
+    b: 'Quy định 225 (thay 21), Quy định 212 (thay 69, 264), Quy định 207 (thay 37).' },
+  { q: 'Có những hình thức kỷ luật nào?', v: 'ok',
+    a: '<ul><li><b>Tổ chức đảng:</b> khiển trách, cảnh cáo, giải tán.</li><li><b>Đảng viên chính thức:</b> khiển trách, cảnh cáo, cách chức (nếu có chức vụ), khai trừ.</li><li><b>Đảng viên dự bị:</b> khiển trách, cảnh cáo.</li></ul>',
+    b: 'Điều 9 Quy định 225; Quy định 212 cũng nêu các hình thức này.' },
+  { q: 'Thời hiệu kỷ luật là bao lâu?', v: 'sum',
+    a: '<ul><li><b>Tổ chức đảng:</b> 5 năm (60 tháng) với vi phạm đến mức khiển trách; 10 năm (120 tháng) với vi phạm đến mức cảnh cáo. Không áp dụng thời hiệu với giải tán, vi phạm về chính trị nội bộ, vi phạm gây hại quốc phòng, an ninh, đối ngoại.</li><li><b>Đảng viên:</b> 5 năm với khiển trách; 10 năm với cảnh cáo hoặc cách chức. Không áp dụng thời hiệu với khai trừ, chính trị nội bộ, quốc phòng, an ninh, đối ngoại, và vi phạm về sử dụng văn bằng, chứng chỉ trái quy định.</li></ul><p>Thời hiệu tính từ thời điểm có hành vi vi phạm đến khi tổ chức đảng có thẩm quyền kết luận vi phạm đến mức phải kỷ luật.</p>',
+    b: 'Quy định 212 (bản tóm tắt). Đối chiếu số điều trong toàn văn trước khi trích.' },
+  { q: 'Quyết định kỷ luật có hiệu lực từ khi nào?', v: 'ok',
+    a: '<p>Từ ngày ký. Ngoại lệ là quyết định thuộc thẩm quyền của chi bộ (có cách tính hiệu lực riêng, xem toàn văn Quy định 225).</p>',
+    b: 'Quy định 225 (nhiều nguồn cùng nêu).' },
+  { q: 'Chi bộ được quyết định kỷ luật mức nào?', v: 'sum',
+    a: '<p>Chi bộ quyết định khiển trách, cảnh cáo đảng viên trong chi bộ. Với cách chức hoặc khai trừ cấp ủy viên, chi bộ đề nghị lên cấp có thẩm quyền.</p>',
+    b: 'Điều 10 Quy định 225 theo bản tóm tắt của Luật Việt Nam. Cần đọc nguyên văn Điều 10.' },
+  { q: 'Khai trừ khác xóa tên ở chỗ nào?', v: 'sum',
+    a: '<p>Đảng viên chính thức vi phạm nghiêm trọng đến mức phải khai trừ thì phải kỷ luật khai trừ. Không dùng biện pháp xóa tên và không chấp nhận việc xin ra khỏi Đảng để thay cho khai trừ.</p>',
+    b: 'Tóm tắt Quy định 225 (Luật Việt Nam).' },
+  { q: 'Đình chỉ sinh hoạt tối đa bao lâu?', v: 'sum',
+    a: '<p>Thời hạn đình chỉ là 90 ngày kể từ ngày ký quyết định, được gia hạn một lần và không quá 30 ngày. Các trường hợp đình chỉ ở Điều 27; thủ tục ở Điều 29 (khoản 4 nêu đảng viên bị đình chỉ sinh hoạt được làm gì, không được làm gì).</p>',
+    b: 'Quy định 225 qua bài điểm mới (Công lý) và Thư viện Pháp luật.' },
+  { q: 'Ai giải quyết khiếu nại quyết định kỷ luật của ủy ban kiểm tra?', v: 'sum',
+    a: '<p>Ban thường vụ cấp ủy cùng cấp giải quyết khiếu nại lần đầu đối với quyết định kỷ luật của ủy ban kiểm tra cùng cấp.</p>',
+    b: 'Quy định 225 qua bài điểm mới (Công lý).' },
+  { q: 'Người khiếu nại được mời mà không đến thì sao?', v: 'sum',
+    a: '<p>Mời làm việc hai lần mà không đến và không có lý do chính đáng thì tổ chức đảng có thẩm quyền lập biên bản, không giải quyết và lưu hồ sơ kết thúc.</p>',
+    b: 'Quy định 225 qua bài điểm mới (Công lý).' },
+  { q: 'Kỷ luật Đảng có thay cho kỷ luật hành chính hoặc xử lý pháp luật không?', v: 'ok',
+    a: '<p>Không. Kỷ luật đảng không thay thế kỷ luật hành chính, đoàn thể hay xử lý theo pháp luật và ngược lại (trừ khi có quy định khác). Việc xử lý phải đồng bộ với các hình thức đó.</p>',
+    b: 'Quy định 225.' },
+  { q: 'Kỷ luật một tổ chức đảng thì cá nhân có bị xem xét không?', v: 'ok',
+    a: '<p>Có. Khi kỷ luật một tổ chức đảng phải xem xét trách nhiệm và xử lý kỷ luật những đảng viên vi phạm, nhất là người đứng đầu tổ chức đó.</p>',
+    b: 'Quy định 225; Quy định 212.' },
+  { q: 'Khi nào được loại trừ hoặc miễn trách nhiệm?', v: 'sum',
+    a: '<ul><li>Thiệt hại xảy ra hoàn toàn do nguyên nhân khách quan thì được xem xét loại trừ trách nhiệm.</li><li>Sai sót khi thực hiện nhiệm vụ có thể được xem xét miễn hoặc giảm trách nhiệm nếu đáp ứng điều kiện.</li><li>Đề xuất đổi mới, sáng tạo được cơ quan có thẩm quyền cho phép có cơ chế xem xét miễn kỷ luật (điểm e khoản 14 Điều 2 Quy định 212).</li></ul>',
+    b: 'Hướng dẫn 03-HD/UBKTTW và Quy định 212 (bản tóm tắt).' },
+  { q: 'Đảng viên bị kỷ luật oan, sai thì làm gì?', v: 'sum',
+    a: '<p>Quy định 212 bổ sung trách nhiệm của tổ chức xin lỗi và phục hồi quyền lợi cho tổ chức đảng, đảng viên bị kỷ luật oan, sai, đồng thời xem xét trách nhiệm của tổ chức đã ra quyết định sai. Quy định 225 thêm trường hợp “đình chỉ bị can” vào căn cứ xem xét lại kỷ luật đảng viên bị kết án oan, sai.</p>',
+    b: 'Quy định 212 (Nhân Dân); Quy định 225 (Công lý).' }
+];
+
+var PROC = [
+  { no: '354-QĐ/UBKTTW', title: 'Quy trình kiểm tra khi có dấu hiệu vi phạm, giám sát, thi hành kỷ luật (2021)', note: 'Nhiều nơi vẫn dẫn làm quy trình chung. Mình chưa xác minh có bản thay thế sau Quy định 225 hay chưa.', src: [S.q354] },
+  { no: '89-QĐ/TW', title: 'Quy trình của cấp ủy tỉnh: kiểm tra chấp hành, giám sát chuyên đề, thi hành kỷ luật, tố cáo, khiếu nại (2022)', note: 'Dùng tham khảo cách chia bước, không áp nguyên cho cấp xã.', src: [S.q89] },
+  { no: 'Mẫu 2026', title: 'Quy trình giải quyết tố cáo tổ chức đảng, đảng viên của một Ủy ban Kiểm tra Đảng ủy phường', note: 'Ví dụ cấp cơ sở tự ban hành quy trình riêng làm tài liệu nội bộ. Xem để biết cách trình bày, kiểm tra căn cứ trước khi bắt chước.', src: [S.qtmau] }
+];
+
+var ACTIONS = [
+  ['Tải toàn văn Quy định 225 và 212 từ nguồn chính thức', 'Dùng bản toàn văn trên Chinhphu.vn hoặc Cổng Tư liệu văn kiện Đảng, đối chiếu số điều với mục Hỏi nhanh trước khi trích dẫn.'],
+  ['Rà căn cứ pháp lý trong văn bản đang soạn', 'Kế hoạch kiểm tra, giám sát 2027, chương trình toàn khóa, báo cáo: nếu còn ghi căn cứ Quy định 22, 296, 21, 69, 264, 37 thì đổi theo bảng Cũ và mới.'],
+  ['Hỏi Ủy ban Kiểm tra Tỉnh ủy hai việc', 'Quy trình nào đang áp dụng sau Quy định 225, và đã có hướng dẫn thực hiện Quy định 225 chưa.'],
+  ['Gửi cho mình văn bản quy trình đang áp dụng', 'Khi có file, mình sẽ làm checklist từng bước và danh mục hồ sơ cần có cho từng loại việc ở cấp xã.']
+];
+
+var OPEN = [
+  ['Số điều và nội dung Điều 10, Điều 11 Quy định 225', 'Mới đọc bản tóm tắt. Cần nguyên văn để trích đúng thẩm quyền của chi bộ, đảng ủy xã, ủy ban kiểm tra.'],
+  ['Thẩm quyền riêng của đảng ủy xã và Ủy ban Kiểm tra Đảng ủy xã', 'Điều 3 Quy định 225 nêu “đảng ủy trực thuộc cơ sở trở lên” và Quy định 208 nói đảng ủy trực thuộc cơ sở có quyền khai trừ. Chưa xác minh cách hiểu áp dụng cho đảng ủy xã sau khi bỏ cấp huyện.'],
+  ['Quy trình đang áp dụng', 'Chưa biết Quyết định 354-QĐ/UBKTTW (2021) còn dùng hay đã có bản mới sau Quy định 225.'],
+  ['Xử lý khi có từ hai hành vi vi phạm trở lên', 'Bản tóm tắt Quy định 69 nói xem xét từng hành vi, không quyết định chung bằng một hình thức cao nhất. Bản tóm tắt Quy định 212 nói quyết định chung một hình thức cao nhất. Hai nguồn nêu khác nhau, cần đọc điều tương ứng trong Quy định 212.'],
+  ['Hướng dẫn 05-HD/UBKTTW (2022)', 'Chưa xác minh có bị Hướng dẫn 03-HD/UBKTTW (2026) thay thế hay không.'],
+  ['Điều lệ Đảng hiện hành', 'Chưa xác minh nội dung Điều lệ sau Đại hội XIV và mối liên hệ với Quy định 208.'],
+  ['Văn bản về tổ chức bộ máy cơ quan Ủy ban Kiểm tra cấp xã', 'Quy định 299-QĐ/TW (9/6/2025) của Ban Bí thư về cơ quan tham mưu, giúp việc đảng ủy xã được nêu trong tài liệu 2025. Chưa xác minh còn hiệu lực sau các quy định 2026.']
+];
+
+/* ---------- Tiện ích ---------- */
+function $(id) { return document.getElementById(id); }
+function h(tag, props) {
+  var el = document.createElement(tag); props = props || {};
+  Object.keys(props).forEach(function (k) {
+    var v = props[k];
+    if (v == null || v === false) return;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k === 'html') el.innerHTML = v;
+    else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  });
+  for (var i = 2; i < arguments.length; i++) {
+    var c = arguments[i];
+    if (c == null || c === false) continue;
+    if (Array.isArray(c)) c.forEach(function (x) { if (x) el.append(x); });
+    else el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+function norm(s) {
+  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'd').toLowerCase();
+}
+function stripTags(s) { return String(s).replace(/<[^>]+>/g, ' '); }
+function pill(text, kind) { return h('span', { class: 'pill ' + kind, text: text }); }
+function srcLinks(arr) {
+  var box = h('div', { class: 'src' }, h('span', { text: 'Nguồn:' }));
+  arr.forEach(function (s) { box.append(h('a', { href: s[1], target: '_blank', rel: 'noopener', text: s[0] })); });
+  return box;
+}
+
+/* ---------- Tab Văn bản ---------- */
+var FILTERS = [['hh', 'Hiện hành'], ['kg', 'Kiểm tra, giám sát'], ['kl', 'Kỷ luật'], ['dv', 'Đảng viên và Điều lệ'], ['qt', 'Quy trình, ngành'], ['old', 'Đã bị thay thế']];
+var docFilter = 'hh';
+
+function docMatches(d, q) {
+  return !q || norm(d.no + ' ' + d.title + ' ' + d.issuer + ' ' + d.pts.join(' ') + ' ' + d.use).indexOf(q) >= 0;
+}
+function docCard(d) {
+  var v = VER[d.ver], st = STATUS[d.st];
+  return h('article', { class: 'card' + (d.st === 'tk' ? ' tk' : '') },
+    h('div', { class: 'meta' }, pill(st[0], st[1]), pill(v[0], v[1]), h('span', { text: d.date })),
+    h('h3', {}, h('span', { class: 'no', text: d.no }), d.title),
+    h('p', { class: 'issuer', text: d.issuer }),
+    h('ul', {}, d.pts.map(function (p) { return h('li', { text: p }); })),
+    h('p', { class: 'use' }, h('b', { text: 'Dùng khi: ' }), d.use),
+    srcLinks(d.src));
+}
+function oldCard(d) {
+  return h('article', { class: 'card old' },
+    h('div', { class: 'meta' }, pill('Đã bị thay thế', 'bad'), h('span', { text: d.date })),
+    h('h3', {}, h('span', { class: 'no', text: d.no }), d.title),
+    h('p', { class: 'issuer', text: 'Thay bởi: ' + d.by }),
+    srcLinks(d.src));
+}
+function renderDocs() {
+  var q = norm($('qDoc').value.trim()), list = $('docList'); list.textContent = '';
+  var items = [];
+  if (docFilter === 'old') {
+    OLD.forEach(function (d) { if (!q || norm(d.no + ' ' + d.title + ' ' + d.by).indexOf(q) >= 0) items.push(oldCard(d)); });
+  } else {
+    DOCS.forEach(function (d) {
+      if (docFilter !== 'hh' && d.g !== docFilter) return;
+      if (docMatches(d, q)) items.push(docCard(d));
+    });
+  }
+  items.forEach(function (n) { list.append(n); });
+  $('docCount').textContent = items.length ? 'Hiển thị ' + items.length + ' văn bản' : '';
+  if (!items.length) list.append(h('div', { class: 'empty', text: 'Không có văn bản nào khớp. Thử từ khóa ngắn hơn hoặc chọn lại bộ lọc.' }));
+}
+function renderChips() {
+  var box = $('docChips'); box.textContent = '';
+  FILTERS.forEach(function (f) {
+    box.append(h('button', { class: 'chip', type: 'button', 'aria-pressed': String(docFilter === f[0]), text: f[1],
+      onclick: function () { docFilter = f[0]; renderChips(); renderDocs(); } }));
+  });
+}
+
+/* ---------- Tab Cũ và mới ---------- */
+function renderOldNew() {
+  var body = $('oldNew'); body.textContent = '';
+  OLDNEW.forEach(function (r) {
+    body.append(h('tr', {}, h('td', { text: r[0] }), h('td', { class: 'old', text: r[1] }), h('td', { class: 'new', text: r[2] })));
+  });
+}
+
+/* ---------- Tab Hỏi nhanh ---------- */
+function renderFaq() {
+  var q = norm($('qFaq').value.trim()), box = $('faqList'); box.textContent = '';
+  var n = 0;
+  FAQ.forEach(function (f) {
+    if (q && norm(f.q + ' ' + stripTags(f.a) + ' ' + f.b).indexOf(q) < 0) return;
+    n++;
+    var v = VER[f.v];
+    box.append(h('details', { class: 'faq' },
+      h('summary', { text: f.q }),
+      h('div', { class: 'body' },
+        h('div', { html: f.a }),
+        h('p', { class: 'basis' }, pill(v[0], v[1]), ' Căn cứ: ' + f.b))));
+  });
+  $('faqCount').textContent = n ? n + ' câu hỏi' : '';
+  if (!n) box.append(h('div', { class: 'empty', text: 'Không có câu hỏi nào khớp. Thử từ khóa ngắn hơn.' }));
+}
+
+/* ---------- Tab Quy trình, Cần đối chiếu ---------- */
+function renderProc() {
+  var box = $('procList'); box.textContent = '';
+  PROC.forEach(function (p) {
+    box.append(h('article', { class: 'card tk' },
+      h('div', { class: 'meta' }, pill('Tham khảo', 'info')),
+      h('h3', {}, h('span', { class: 'no', text: p.no }), p.title),
+      h('p', { class: 'issuer', text: p.note }),
+      srcLinks(p.src)));
+  });
+}
+function renderTodo() {
+  var a = $('actions'), o = $('openItems'); a.textContent = ''; o.textContent = '';
+  ACTIONS.forEach(function (x) { a.append(h('li', {}, h('strong', { text: x[0] }), x[1])); });
+  OPEN.forEach(function (x) { o.append(h('li', {}, h('strong', { text: x[0] }), x[1])); });
+}
+
+/* ---------- Tab và khởi động ---------- */
+var TABS = ['van-ban', 'cu-moi', 'hoi-nhanh', 'quy-trinh', 'doi-chieu'];
+function showTab(name) {
+  if (TABS.indexOf(name) < 0) name = 'van-ban';
+  TABS.forEach(function (n) {
+    $('panel-' + n).hidden = n !== name;
+    $('tab-' + n).setAttribute('aria-selected', String(n === name));
+  });
+  try { history.replaceState(null, '', '#' + name); } catch (e) { /* bỏ qua */ }
+}
+TABS.forEach(function (n) { $('tab-' + n).addEventListener('click', function () { showTab(n); }); });
+window.addEventListener('hashchange', function () { showTab((location.hash || '').replace('#', '')); });
+$('qDoc').addEventListener('input', renderDocs);
+$('qFaq').addEventListener('input', renderFaq);
+
+renderChips(); renderDocs(); renderOldNew(); renderFaq(); renderProc(); renderTodo();
+showTab((location.hash || '').replace('#', ''));
+})();
+</script>
+</body>
+</html>
